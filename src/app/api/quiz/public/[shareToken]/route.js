@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase-server';
 
 export async function GET(request, { params }) {
   try {
-    const { shareToken } = params;
+    const { shareToken } = await params;
     
     if (!shareToken) {
       return NextResponse.json({ error: 'Missing share token' }, { status: 400 });

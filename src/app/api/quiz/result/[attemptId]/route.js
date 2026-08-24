@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase-server';
 
 export async function GET(request, { params }) {
   try {
-    const { attemptId } = params;
+    const { attemptId } = await params;
     
     if (!attemptId) {
       return NextResponse.json({ error: 'Missing attempt ID' }, { status: 400 });

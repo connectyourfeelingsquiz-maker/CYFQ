@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function PublicQuizPlayer({ params }) {
-  const { shareToken } = params;
+  const { shareToken } = use(params);
   const router = useRouter();
 
   const [quiz, setQuiz] = useState(null);

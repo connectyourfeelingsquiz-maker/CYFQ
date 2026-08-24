@@ -5,7 +5,7 @@ import { getUserSession } from '@/lib/user-auth'; // We need some identifier for
 
 export async function POST(request, { params }) {
   try {
-    const { shareToken } = params;
+    const { shareToken } = await params;
     const body = await request.json();
     const { answers } = body; // format: { [questionId]: selectedOptionId }
 

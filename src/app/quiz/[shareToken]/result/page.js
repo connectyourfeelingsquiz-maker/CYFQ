@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, use } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -142,10 +142,11 @@ function ResultContent({ shareToken }) {
 }
 
 export default function QuizResultPage({ params }) {
+  const { shareToken } = use(params);
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
       <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>Loading...</div>}>
-        <ResultContent shareToken={params.shareToken} />
+        <ResultContent shareToken={shareToken} />
       </Suspense>
     </div>
   );
