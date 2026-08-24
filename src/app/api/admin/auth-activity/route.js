@@ -15,25 +15,22 @@ export async function GET() {
     await supabase.from('admin_audit_logs').insert({
       admin_id: session.email,
       action: 'authentication_activity_viewed',
-      target_type: 'authentication_events',
+      target_type: 'cyfq_sessions',
       safe_metadata: { timestamp: new Date().toISOString() }
     });
 
-    // Fetch authentication events with user info — NEVER includes passwords
+    // Fetch authentication events from the new cyfq_sessions table
     const { data: events, error } = await supabase
-      .from('authentication_events')
+      .from('cyfq_sessions')
       .select(`
         id,
+        username_1,
+        username_2,
         authentication_method,
-        event_type,
-        success,
+        status,
         created_at,
-        safe_metadata,
-        user_id,
-        users (
-          username,
-          display_name
-        )
+        browser,
+        os
       `)
       .order('created_at', { ascending: false })
       .limit(100);
@@ -42,13 +39,13 @@ export async function GET() {
 
     const formatted = (events || []).map(event => ({
       id: event.id,
-      user: event.users?.display_name || event.users?.username || 'Unknown',
-      username: event.users?.username || 'unknown',
+      username1: event.username_1,
+      username2: event.username_2,
       method: event.authentication_method,
-      status: event.success ? 'Success' : 'Failed',
+      status: event.status,
       time: event.created_at,
-      browser: event.safe_metadata?.browser || '-',
-      os: event.safe_metadata?.os || '-',
+      browser: event.browser || '-',
+      os: event.os || '-',
     }));
 
     return NextResponse.json({ events: formatted });

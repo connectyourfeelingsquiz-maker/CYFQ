@@ -1,26 +1,6 @@
-'use client';
-
 import Link from 'next/link';
-import { useState } from 'react';
 
 export default function WelcomePage() {
-  const [loading, setLoading] = useState(false);
-
-  const handleDemoLogin = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/auth/demo-login', { method: 'POST' });
-      if (res.ok) {
-        window.location.href = '/dashboard';
-      } else {
-        alert('Demo login failed.');
-      }
-    } catch (error) {
-      console.error(error);
-    }
-    setLoading(false);
-  };
-
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
       
@@ -39,18 +19,11 @@ export default function WelcomePage() {
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>Connect Your Feelings Quiz</p>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {/* Mock Instagram OAuth Button */}
-          <button className="btn" style={{ background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', color: 'white' }}>
-            Continue with Instagram
-          </button>
-          
-          <button 
-            className="btn btn-secondary" 
-            onClick={handleDemoLogin}
-            disabled={loading}
-          >
-            {loading ? 'Logging in...' : 'Try Demo User'}
-          </button>
+          <Link href="/login" style={{ width: '100%' }}>
+            <button className="btn" style={{ width: '100%', background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', color: 'white' }}>
+              Continue with Instagram
+            </button>
+          </Link>
         </div>
       </div>
     </div>

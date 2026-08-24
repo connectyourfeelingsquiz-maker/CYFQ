@@ -1,17 +1,55 @@
 'use client';
 
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function UserDashboard() {
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    async function fetchSession() {
+      try {
+        const res = await fetch('/api/auth/session');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated) {
+            setSession(data);
+          } else {
+            router.push('/login');
+          }
+        } else {
+          router.push('/login');
+        }
+      } catch (err) {
+        console.error(err);
+        router.push('/login');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSession();
+  }, [router]);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (loading) return null;
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '4rem' }}>
       
       <div style={{ width: '100%', maxWidth: '800px', padding: '0 1rem' }}>
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-          <h1 style={{ color: 'var(--accent-primary)' }}>CYFQ Dashboard</h1>
-          <Link href="/">
-            <button className="btn btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>Log Out</button>
-          </Link>
+          <h1 style={{ color: 'var(--accent-primary)' }}>Welcome, {session?.username1}</h1>
+          <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}>Log Out</button>
         </header>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>

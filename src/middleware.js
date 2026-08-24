@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAdminSession } from '@/lib/admin-auth';
+import { getUserSession } from '@/lib/user-auth';
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
@@ -16,7 +17,7 @@ export async function middleware(request) {
     }
   }
 
-  // If trying to access login page while already authenticated, redirect to dashboard
+  // If trying to access admin login page while already authenticated, redirect to admin dashboard
   if (pathname === '/admin/login') {
     const session = await getAdminSession();
     if (session) {
@@ -26,9 +27,29 @@ export async function middleware(request) {
     }
   }
 
+  // Protect regular user /dashboard
+  if (pathname.startsWith('/dashboard')) {
+    const session = await getUserSession();
+    if (!session) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Redirect to dashboard if trying to access /login while authenticated
+  if (pathname === '/login') {
+    const session = await getUserSession();
+    if (session) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/dashboard';
+      return NextResponse.redirect(url);
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/dashboard/:path*', '/login'],
 };

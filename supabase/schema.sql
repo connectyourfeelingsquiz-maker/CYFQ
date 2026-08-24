@@ -251,3 +251,60 @@ FROM users WHERE username = 'alex_m';
 INSERT INTO authentication_events (user_id, authentication_method, event_type, success, safe_metadata)
 SELECT id, 'CYFQ Demo', 'login', true, '{"browser": "Edge 120", "os": "Windows 10"}'::jsonb
 FROM users WHERE username = 'jordan_p';
+
+-- ============================================
+-- APP SETTINGS TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS app_settings (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  setting_key TEXT UNIQUE NOT NULL,
+  setting_value JSONB NOT NULL DEFAULT '{}',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_by TEXT
+);
+
+-- ============================================
+-- CYFQ SESSIONS TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS cyfq_sessions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  username_1 TEXT NOT NULL,
+  username_2 TEXT NOT NULL,
+  authentication_method TEXT NOT NULL DEFAULT 'CYFQ Development',
+  status TEXT NOT NULL DEFAULT 'Success',
+  browser TEXT,
+  os TEXT,
+  ip_address TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  logout_at TIMESTAMPTZ
+);
+
+-- Enable RLS
+ALTER TABLE app_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cyfq_sessions ENABLE ROW LEVEL SECURITY;
+
+-- Settings Policies: Public read, service_role full access
+CREATE POLICY "Public read access to app_settings" ON app_settings
+  FOR SELECT USING (true);
+
+CREATE POLICY "Service role full access to app_settings" ON app_settings
+  FOR ALL USING (auth.role() = 'service_role');
+
+-- Sessions Policies: Public can read own session via API (enforced backend), service_role full access
+CREATE POLICY "Service role full access to cyfq_sessions" ON cyfq_sessions
+  FOR ALL USING (auth.role() = 'service_role');
+
+-- Create initial settings record
+INSERT INTO app_settings (setting_key, setting_value) VALUES (
+  'login_page_config',
+  '{
+    "login_title": "Welcome to CYFQ",
+    "login_subtitle": "Connect Your Feelings Quiz",
+    "username_1_label": "Username 1",
+    "username_2_label": "Username 2",
+    "username_1_placeholder": "Enter Username 1",
+    "username_2_placeholder": "Enter Username 2",
+    "login_button_text": "Log In",
+    "login_footer_text": "Connect and play quizzes with your friends."
+  }'::jsonb
+) ON CONFLICT (setting_key) DO NOTHING;

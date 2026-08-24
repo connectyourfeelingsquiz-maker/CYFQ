@@ -23,6 +23,7 @@ export default function AdminDashboardLayout({ children }) {
     { label: 'Quizzes', path: '/admin/dashboard/quizzes' },
     { label: 'Quiz Attempts', path: '/admin/dashboard/attempts' },
     { label: 'Audit Logs', path: '/admin/dashboard/audit-logs' },
+    { label: 'Settings → Login Page', path: '/admin/dashboard/settings/login-page' },
   ];
 
   return (
@@ -30,7 +31,7 @@ export default function AdminDashboardLayout({ children }) {
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h2 style={{ color: 'var(--accent-primary)', m: 0 }}>CYFQ Admin</h2>
+          <h2 style={{ color: 'var(--accent-primary)', margin: 0 }}>CYFQ Admin</h2>
         </div>
         <nav className="sidebar-nav">
           {navItems.map(item => (
