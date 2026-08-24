@@ -37,6 +37,19 @@ export async function middleware(request) {
     }
   }
 
+  // Protect /quiz/ routes (playing a quiz)
+  if (pathname.startsWith('/quiz/') && pathname !== '/quiz/create' && !pathname.startsWith('/quiz/share/')) {
+    const session = await getUserSession();
+    if (!session) {
+      const url = request.nextUrl.clone();
+      // Extract the shareToken from the path
+      const token = pathname.replace('/quiz/', '');
+      url.pathname = '/login';
+      url.searchParams.set('playQuiz', token);
+      return NextResponse.redirect(url);
+    }
+  }
+
   // Redirect to dashboard if trying to access /login while authenticated
   if (pathname === '/login') {
     const session = await getUserSession();
@@ -51,5 +64,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/dashboard/:path*', '/login'],
+  matcher: ['/admin/:path*', '/dashboard/:path*', '/login', '/quiz/:path*'],
 };

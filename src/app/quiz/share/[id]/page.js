@@ -11,7 +11,7 @@ export default function ShareQuizPage({ params }) {
 
   useEffect(() => {
     // Generate the absolute URL for sharing
-    const url = `${window.location.origin}/quiz/${params.id}`;
+    const url = `${window.location.origin}/quiz/share/${params.id}`;
     setShareUrl(url);
   }, [params.id]);
 
@@ -70,7 +70,7 @@ export default function ShareQuizPage({ params }) {
         </button>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <Link href={`/quiz/${params.id}`} style={{ width: '100%' }}>
+          <Link href={`/quiz/share/${params.id}`} style={{ width: '100%' }}>
             <button className="btn btn-secondary" style={{ width: '100%' }}>Play Quiz</button>
           </Link>
           <Link href="/dashboard" style={{ width: '100%' }}>
@@ -82,3 +82,4 @@ export default function ShareQuizPage({ params }) {
     </div>
   );
 }
+

@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
-export default function LoginPage() {
+function LoginForm() {
   const [settings, setSettings] = useState(null);
   const [username1, setUsername1] = useState('');
   const [username2, setUsername2] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     async function fetchSettings() {
@@ -52,7 +53,12 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        router.push(data.redirect || '/dashboard');
+        const playQuiz = searchParams.get('playQuiz');
+        if (playQuiz) {
+          router.push(`/dashboard?playQuiz=${playQuiz}`);
+        } else {
+          router.push(data.redirect || '/dashboard');
+        }
       } else {
         setError(data.error || 'Login failed. Please try again.');
         setLoading(false);
@@ -124,5 +130,13 @@ export default function LoginPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -132,7 +132,7 @@ export default function CreateQuizPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        router.push(`/quiz/${data.share_token}/share`);
+        router.push(`/quiz/share/${data.share_token}`);
       } else {
         setError(data.error || 'Failed to publish quiz.');
         setSaving(false);

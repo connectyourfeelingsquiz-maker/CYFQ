@@ -1,15 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function UserDashboard() {
+function DashboardContent() {
   const [session, setSession] = useState(null);
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [quizLink, setQuizLink] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [quizLink, setQuizLink] = useState('');
+
+  useEffect(() => {
+    const playQuiz = searchParams.get('playQuiz');
+    if (playQuiz) {
+      setQuizLink(`https://mycyfq.com/quiz/${playQuiz}`);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -146,7 +154,7 @@ export default function UserDashboard() {
                         </span>
                       </td>
                       <td>
-                        <Link href={`/quiz/${quiz.share_token}/share`}>
+                        <Link href={`/quiz/share/${quiz.share_token}`}>
                           <button className="btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', borderRadius: '4px' }}>
                             Share Link
                           </button>
@@ -162,5 +170,13 @@ export default function UserDashboard() {
         
       </div>
     </div>
+  );
+}
+
+export default function UserDashboard() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Loading...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
