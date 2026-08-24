@@ -16,10 +16,11 @@ export async function GET() {
       .select(`
         id,
         score,
+        percentage,
         total_questions,
         started_at,
         completed_at,
-        users ( username, display_name ),
+        cyfq_sessions ( username_1, username_2 ),
         quizzes ( title )
       `)
       .order('started_at', { ascending: false })
@@ -27,14 +28,22 @@ export async function GET() {
 
     if (error) throw error;
 
-    const formatted = (attempts || []).map(attempt => ({
-      id: attempt.id,
-      user: attempt.users?.display_name || attempt.users?.username || 'Unknown',
-      quiz: attempt.quizzes?.title || 'Unknown Quiz',
-      score: attempt.score != null ? `${attempt.score} / ${attempt.total_questions || '?'}` : 'In Progress',
-      date: attempt.started_at,
-      completed: !!attempt.completed_at
-    }));
+    const formatted = (attempts || []).map(attempt => {
+      let userName = 'Unknown';
+      if (attempt.cyfq_sessions) {
+        userName = `${attempt.cyfq_sessions.username_1} & ${attempt.cyfq_sessions.username_2}`;
+      }
+
+      return {
+        id: attempt.id,
+        user: userName,
+        quiz: attempt.quizzes?.title || 'Unknown Quiz',
+        score: attempt.score != null ? `${attempt.score} / ${attempt.total_questions || '?'}` : 'In Progress',
+        percentage: attempt.percentage,
+        date: attempt.completed_at || attempt.started_at,
+        completed: !!attempt.completed_at
+      };
+    });
 
     return NextResponse.json({ attempts: formatted });
   } catch (error) {

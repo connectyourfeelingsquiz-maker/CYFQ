@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const [settings, setSettings] = useState(null);
@@ -67,6 +68,15 @@ export default function LoginPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
       <div className="glass-card" style={{ width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+        
+        {settings.logo_url ? (
+          <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'center' }}>
+            <img src={settings.logo_url} alt="CYFQ Logo" style={{ maxHeight: '80px', maxWidth: '100%', objectFit: 'contain' }} />
+          </div>
+        ) : (
+          <h2 style={{ marginBottom: '0.5rem', color: 'var(--accent-primary)' }}>CYFQ</h2>
+        )}
+
         <h2 style={{ marginBottom: '0.5rem', color: 'var(--accent-primary)' }}>{settings.login_title}</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>{settings.login_subtitle}</p>
         

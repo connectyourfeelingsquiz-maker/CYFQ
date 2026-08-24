@@ -56,13 +56,18 @@ export default function QuizzesPage() {
               <tr key={quiz.id}>
                 <td>
                   <div style={{ fontWeight: 500 }}>{quiz.title}</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{quiz.description?.substring(0, 50)}...</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    {new Date(quiz.created_at).toLocaleDateString()}
+                  </div>
                 </td>
                 <td>{quiz.creator}</td>
-                <td>{quiz.category}</td>
+                <td>{quiz.category || 'Custom'}</td>
                 <td>
                   <div style={{ fontSize: '0.875rem' }}>{quiz.question_count} Qs</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{quiz.attempt_count} plays</div>
+                  {quiz.average_score !== null && (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--accent-primary)' }}>Avg: {quiz.average_score}%</div>
+                  )}
                 </td>
                 <td>
                   <span className={`badge ${quiz.is_active ? 'badge-success' : 'badge-danger'}`}>

@@ -26,13 +26,14 @@ export async function GET() {
         title,
         description,
         category,
+        share_token,
         is_active,
         created_at,
         updated_at,
         creator_id,
-        users (
-          username,
-          display_name
+        cyfq_sessions (
+          username_1,
+          username_2
         )
       `)
       .order('created_at', { ascending: false });
@@ -42,15 +43,29 @@ export async function GET() {
     // Count questions and attempts for each quiz
     const enriched = await Promise.all(
       (quizzes || []).map(async (quiz) => {
-        const [questionCount, attemptCount] = await Promise.all([
+        const [questionCount, attemptCount, attemptsData] = await Promise.all([
           supabase.from('questions').select('id', { count: 'exact', head: true }).eq('quiz_id', quiz.id),
           supabase.from('quiz_attempts').select('id', { count: 'exact', head: true }).eq('quiz_id', quiz.id),
+          supabase.from('quiz_attempts').select('percentage').eq('quiz_id', quiz.id)
         ]);
+        
+        let avgScore = null;
+        if (attemptsData.data && attemptsData.data.length > 0) {
+          const total = attemptsData.data.reduce((sum, a) => sum + (a.percentage || 0), 0);
+          avgScore = Math.round(total / attemptsData.data.length);
+        }
+
+        let creatorName = 'Unknown';
+        if (quiz.cyfq_sessions) {
+          creatorName = `${quiz.cyfq_sessions.username_1} & ${quiz.cyfq_sessions.username_2}`;
+        }
+
         return {
           ...quiz,
-          creator: quiz.users?.display_name || quiz.users?.username || 'Unknown',
+          creator: creatorName,
           question_count: questionCount.count || 0,
           attempt_count: attemptCount.count || 0,
+          average_score: avgScore
         };
       })
     );

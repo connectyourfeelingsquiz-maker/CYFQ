@@ -28,10 +28,11 @@ CREATE TABLE IF NOT EXISTS users (
 -- ============================================
 CREATE TABLE IF NOT EXISTS quizzes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  creator_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  creator_id UUID REFERENCES cyfq_sessions(id) ON DELETE SET NULL,
   title TEXT NOT NULL,
   description TEXT,
   category TEXT,
+  share_token TEXT UNIQUE,
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -66,9 +67,10 @@ CREATE TABLE IF NOT EXISTS answer_options (
 -- ============================================
 CREATE TABLE IF NOT EXISTS quiz_attempts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  session_id UUID NOT NULL REFERENCES cyfq_sessions(id) ON DELETE CASCADE,
   quiz_id UUID NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
   score INTEGER,
+  percentage INTEGER,
   total_questions INTEGER,
   started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   completed_at TIMESTAMPTZ
@@ -168,7 +170,9 @@ CREATE POLICY "Service role full access to answer_options" ON answer_options
 
 -- Quiz attempts: users can see own attempts
 CREATE POLICY "Users can view own attempts" ON quiz_attempts
-  FOR SELECT USING (auth.uid()::text = user_id::text);
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM cyfq_sessions WHERE cyfq_sessions.id = quiz_attempts.session_id)
+  );
 
 CREATE POLICY "Service role full access to quiz_attempts" ON quiz_attempts
   FOR ALL USING (auth.role() = 'service_role');
@@ -176,7 +180,7 @@ CREATE POLICY "Service role full access to quiz_attempts" ON quiz_attempts
 -- Quiz answers: users can see own answers
 CREATE POLICY "Users can view own answers" ON quiz_answers
   FOR SELECT USING (
-    EXISTS (SELECT 1 FROM quiz_attempts WHERE quiz_attempts.id = quiz_answers.attempt_id AND auth.uid()::text = quiz_attempts.user_id::text)
+    EXISTS (SELECT 1 FROM quiz_attempts WHERE quiz_attempts.id = quiz_answers.attempt_id)
   );
 
 CREATE POLICY "Service role full access to quiz_answers" ON quiz_answers
@@ -196,7 +200,7 @@ CREATE POLICY "Service role full access to audit logs" ON admin_audit_logs
 CREATE INDEX IF NOT EXISTS idx_quizzes_creator ON quizzes(creator_id);
 CREATE INDEX IF NOT EXISTS idx_questions_quiz ON questions(quiz_id);
 CREATE INDEX IF NOT EXISTS idx_answer_options_question ON answer_options(question_id);
-CREATE INDEX IF NOT EXISTS idx_quiz_attempts_user ON quiz_attempts(user_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempts_session ON quiz_attempts(session_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_attempts_quiz ON quiz_attempts(quiz_id);
 CREATE INDEX IF NOT EXISTS idx_quiz_answers_attempt ON quiz_answers(attempt_id);
 CREATE INDEX IF NOT EXISTS idx_auth_events_user ON authentication_events(user_id);
@@ -308,3 +312,21 @@ INSERT INTO app_settings (setting_key, setting_value) VALUES (
     "login_footer_text": "Connect and play quizzes with your friends."
   }'::jsonb
 ) ON CONFLICT (setting_key) DO NOTHING;
+
+-- ============================================
+-- STORAGE BUCKETS
+-- ============================================
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('cyfq-branding', 'cyfq-branding', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage Policies
+-- Public read access
+CREATE POLICY "Public read access for cyfq-branding"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'cyfq-branding');
+
+-- Service role full access
+CREATE POLICY "Service role full access for cyfq-branding"
+ON storage.objects FOR ALL
+USING (auth.role() = 'service_role' AND bucket_id = 'cyfq-branding');

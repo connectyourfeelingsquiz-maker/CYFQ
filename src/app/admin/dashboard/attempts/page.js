@@ -45,7 +45,12 @@ export default function AttemptsPage() {
                 <td style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{attempt.id.substring(0, 8)}...</td>
                 <td style={{ fontWeight: 500 }}>{attempt.user}</td>
                 <td>{attempt.quiz}</td>
-                <td style={{ fontWeight: 600 }}>{attempt.score}</td>
+                <td>
+                  <div style={{ fontWeight: 600 }}>{attempt.score}</div>
+                  {attempt.percentage !== null && (
+                    <div style={{ fontSize: '0.75rem', color: 'var(--accent-primary)' }}>{attempt.percentage}%</div>
+                  )}
+                </td>
                 <td>{new Date(attempt.date).toLocaleString()}</td>
                 <td>
                   <span className={`badge ${attempt.completed ? 'badge-success' : 'badge-warning'}`}>
